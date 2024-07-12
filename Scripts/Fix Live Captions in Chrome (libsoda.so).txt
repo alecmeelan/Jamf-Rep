@@ -1,0 +1,32 @@
+﻿#!/bin/bash
+
+# Define the base path
+base_path="/Users"
+
+# Iterate through user folders
+for user_folder in "$base_path"/*; do
+    if [ -d "$user_folder" ]; then
+        # Check if the Chrome/SODA folder exists
+        chrome_soda_path="$user_folder/Library/Application Support/Google/Chrome/SODA"
+        if [ -d "$chrome_soda_path" ]; then
+            # Find the folder starting with '1'
+            folder_1=$(find "$chrome_soda_path" -maxdepth 1 -type d -name '1*')
+
+            # Check if the folder is found
+            if [ -n "$folder_1" ]; then
+                # Apply xattr -dr com.apple.quarantine to libsoda.so
+                libsoda_path="$folder_1/SODAFiles/libsoda.so"
+                if [ -e "$libsoda_path" ]; then
+                    xattr -dr com.apple.quarantine "$libsoda_path"
+                    echo "Applied xattr -dr com.apple.quarantine to $libsoda_path"
+                else
+                    echo "libsoda.so not found in $folder_1"
+                fi
+            else
+                echo "No folder starting with '1' found in $chrome_soda_path"
+            fi
+        else
+            echo "Chrome/SODA folder not found in $user_folder"
+        fi
+    fi
+done
