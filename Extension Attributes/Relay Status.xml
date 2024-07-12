@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?><extensionAttribute>
+<displayName>Relay Status</displayName>
+<description>Finds running process components of Lightspeed Relay Smart Agent&#13;
+# Checks if Lightspeed Filter Smart Agent processes are running, binaries are installed, and Network Extension is running&#13;
+# If a component is not installed or not running, returns "Error: &lt;error reason&gt;"&#13;
+# Otherwise returns mobilefilter version</description>
+<dataType>string</dataType>
+<scriptContentsMac>#!/bin/zsh&#13;
+&#13;
+# Checks if Lightspeed Filter Smart Agent processes are running, binaries are installed, and Network Extension is running&#13;
+# If a component is not installed or not running, returns "Error: &lt;error reason&gt;"&#13;
+# Otherwise returns mobilefilter version&#13;
+&#13;
+# check for installed binaries&#13;
+if ! test -f /usr/local/bin/proxyforce; then&#13;
+    printf "&lt;result&gt;Error: proxyforce binary not found&lt;/result&gt;"&#13;
+    exit 1&#13;
+fi&#13;
+if ! test -f /Applications/.lightspeed-agent/lsproxy; then&#13;
+    printf "&lt;result&gt;Error: lsproxy binary not found&lt;/result&gt;"&#13;
+    exit 1&#13;
+fi&#13;
+if ! $(test -f /usr/local/bin/mobilefilter); then&#13;
+    printf "&lt;result&gt;Error: mobilefilter binary not found&lt;/result&gt;"&#13;
+    exit 1&#13;
+fi&#13;
+&#13;
+# check for running processes&#13;
+if ! pgrep -x proxyforce &gt;/dev/null 2&gt;&amp;1; then&#13;
+    printf "&lt;result&gt;Error: proxyforce process not running&lt;/result&gt;"&#13;
+    exit 1&#13;
+fi&#13;
+if ! pgrep -x smartagentjs &gt;/dev/null 2&gt;&amp;1; then&#13;
+    printf "&lt;result&gt;Error: smartagentjs process not running&lt;/result&gt;"&#13;
+    exit 1&#13;
+fi&#13;
+if ! pgrep -x lsproxy &gt;/dev/null 2&gt;&amp;1; then&#13;
+    printf "&lt;result&gt;Error: lsproxy process not running&lt;/result&gt;"&#13;
+    exit 1&#13;
+fi&#13;
+if ! $(pgrep -x mobilefilter &gt;/dev/null 2&gt;&amp;1); then&#13;
+    printf "&lt;result&gt;Error: mobilefilter process not running&lt;/result&gt;"&#13;
+    exit 1&#13;
+fi&#13;
+&#13;
+# check if Network Extension is active&#13;
+if ! $(systemextensionsctl list | grep -q "com.lightspeedsystems.network-agent.network-extension"); then&#13;
+    printf "&lt;result&gt;Error: Network extension not installed&lt;/result&gt;"&#13;
+    exit 1&#13;
+fi&#13;
+&#13;
+if ! $(systemextensionsctl list | grep "com.lightspeedsystems.network-agent.network-extension" | grep -q "activated enabled"); then&#13;
+    printf "&lt;result&gt;Error: Network extension not active&lt;/result&gt;"&#13;
+    exit 1&#13;
+fi&#13;
+&#13;
+printf "&lt;result&gt;$(/usr/local/bin/mobilefilter -v)&lt;/result&gt;"</scriptContentsMac>
+</extensionAttribute>
